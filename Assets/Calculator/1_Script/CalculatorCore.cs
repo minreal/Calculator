@@ -77,32 +77,47 @@ namespace calculator
 
         private void CalculateFullEquation()
         {
-            string fullValue = currentInput;
-            List<string> parts = SplitIntoParts(fullValue);
-
-            if (parts.Count < 3)
-            {
-                return;
-            }
-
             try
             {
-                double result = ConvertToDouble(parts[0]);
-                int index = 1;
+                List<string> parts = SplitIntoParts(currentInput);
 
-                while (index < parts.Count - 1)
+                if (parts.Count < 3)
+                    return;
+
+                List<string> pass1List = new List<string>(parts);
+
+                for (int i = 0; i < pass1List.Count; i++)
                 {
-                    string oparetr = parts[index];
-                    string nextNumberText = parts[index + 1];
+                    string item = pass1List[i];
 
-                    double nextNumber = ConvertToDouble(nextNumberText);
+                    if (item == "x" || item == "/")
+                    {
+                        double leftNumber = ConvertToDouble(pass1List[i - 1]);
+                        double rightNumber = ConvertToDouble(pass1List[i + 1]);
+                        double answer = SimpleCalculate(leftNumber, rightNumber, item);
 
-                    result = SimpleCalculate(result, nextNumber, oparetr);
+                        pass1List[i - 1] = answer.ToString();
+                        pass1List.RemoveAt(i + 1);
+                        pass1List.RemoveAt(i);
 
-                    index += 2; 
+                        i--;
+                    }
                 }
 
-                currentInput = FormatNumber(result);
+                double finalResult = ConvertToDouble(pass1List[0]);
+
+                int index = 1;
+                while (index < pass1List.Count - 1)
+                {
+                    string operetr = pass1List[index];
+                    double nextNumber = ConvertToDouble(pass1List[index + 1]);
+
+                    finalResult = SimpleCalculate(finalResult, nextNumber, operetr);
+
+                    index += 2;
+                }
+
+                currentInput = FormatNumber(finalResult);
                 UpdateDisplay();
             }
             catch
@@ -110,8 +125,8 @@ namespace calculator
                 currentInput = "Error";
                 UpdateDisplay();
             }
-            isEqualButtonClicked = true;
         }
+
 
         private List<string> SplitIntoParts(string fullValue)
         {
